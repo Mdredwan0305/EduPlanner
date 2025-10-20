@@ -1,0 +1,649 @@
+<html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Schedule Assistant</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --current-class: #3498db;
+            --next-class: #2ecc71;
+            --past-class: #bdc3c7;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px 0;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        
+        .teacher-info {
+            text-align: right;
+        }
+        
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+        }
+        
+        .schedule-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .day-selector {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .day-btn {
+            padding: 10px 15px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .day-btn.active {
+            border-bottom: 3px solid var(--primary);
+            color: var(--primary);
+            font-weight: bold;
+        }
+        
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .schedule-table th {
+            background-color: var(--light);
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .schedule-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .period {
+            font-weight: bold;
+            width: 80px;
+        }
+        
+        .class-item {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .class-item.current {
+            background-color: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid var(--current-class);
+        }
+        
+        .class-item.next {
+            background-color: rgba(46, 204, 113, 0.1);
+            border-left: 4px solid var(--next-class);
+        }
+        
+        .class-item.past {
+            background-color: rgba(189, 195, 199, 0.1);
+            color: #7f8c8d;
+            border-left: 4px solid var(--past-class);
+        }
+        
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card h3 {
+            margin-bottom: 15px;
+            color: var(--primary);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .next-class {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 15px;
+        }
+        
+        .next-class-time {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+        
+        .next-class-details {
+            background-color: rgba(46, 204, 113, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            width: 100%;
+        }
+        
+        .notification-settings label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .notification-settings input {
+            margin-right: 10px;
+        }
+        
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(150%);
+            transition: transform 0.5s;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .notification-info {
+            flex: 1;
+        }
+        
+        .notification-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+            
+            .teacher-info {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="logo">Teacher Schedule</div>
+                <div class="teacher-info">
+                    <h2>Welcome, Mr. Johnson</h2>
+                    <p>Mathematics Department</p>
+                </div>
+                <div class="notification-bell">
+                    🔔
+                    <span class="notification-badge">3</span>
+                </div>
+            </div>
+        </header>
+        
+        <div class="dashboard">
+            <div class="schedule-container">
+                <div class="day-selector">
+                    <button class="day-btn active" data-day="monday">Monday</button>
+                    <button class="day-btn" data-day="tuesday">Tuesday</button>
+                    <button class="day-btn" data-day="wednesday">Wednesday</button>
+                    <button class="day-btn" data-day="thursday">Thursday</button>
+                    <button class="day-btn" data-day="friday">Friday</button>
+                </div>
+                
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>Period</th>
+                            <th>Class</th>
+                            <th>Room</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="schedule-body">
+                        <!-- Schedule will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="sidebar">
+                <div class="card next-class">
+                    <h3>Next Class</h3>
+                    <div class="next-class-time" id="next-class-time">10:30 AM</div>
+                    <div class="next-class-details">
+                        <h4 id="next-class-name">Grade 10 - Mathematics</h4>
+                        <p id="next-class-room">Room 205</p>
+                        <p id="next-class-period">Period 3</p>
+                    </div>
+                </div>
+                
+                <div class="card notification-settings">
+                    <h3>Notification Settings</h3>
+                    <label>
+                        <input type="checkbox" id="notify-before-class" checked>
+                        Notify 5 minutes before class
+                    </label>
+                    <label>
+                        <input type="checkbox" id="sound-notification" checked>
+                        Play sound with notifications
+                    </label>
+                    <label>
+                        <input type="checkbox" id="desktop-notification">
+                        Show desktop notifications
+                    </label>
+                    <button class="btn btn-primary" style="margin-top: 15px; width: 100%;">
+                        Save Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="class-notification">
+        <div class="notification-icon" style="background-color: var(--secondary);">!</div>
+        <div class="notification-info">
+            <strong>Next Class Starting Soon</strong>
+            <p>Grade 10 Mathematics in Room 205</p>
+        </div>
+        <button class="notification-close">&times;</button>
+    </div>
+
+    <script>
+        // Sample schedule data - in a real app, this would come from a database
+        const scheduleData = {
+            monday: [
+                { period: 1, subject: "Mathematics", grade: "Grade 9", room: "101", time: "8:00 AM", duration: 45 },
+                { period: 2, subject: "Mathematics", grade: "Grade 10", room: "205", time: "8:50 AM", duration: 45 },
+                { period: 3, subject: "Physics", grade: "Grade 11", room: "305", time: "9:40 AM", duration: 45 },
+                { period: 4, subject: "Mathematics", grade: "Grade 12", room: "101", time: "10:30 AM", duration: 45 },
+                { period: 5, subject: "Break", grade: "", room: "", time: "11:20 AM", duration: 20 },
+                { period: 6, subject: "Mathematics", grade: "Grade 9", room: "101", time: "11:40 AM", duration: 45 },
+                { period: 7, subject: "Physics", grade: "Grade 10", room: "205", time: "12:30 PM", duration: 45 }
+            ],
+            tuesday: [
+                { period: 1, subject: "Physics", grade: "Grade 11", room: "305", time: "8:00 AM", duration: 45 },
+                { period: 2, subject: "Mathematics", grade: "Grade 12", room: "101", time: "8:50 AM", duration: 45 },
+                { period: 3, subject: "Mathematics", grade: "Grade 9", room: "101", time: "9:40 AM", duration: 45 },
+                { period: 4, subject: "Physics", grade: "Grade 10", room: "205", time: "10:30 AM", duration: 45 },
+                { period: 5, subject: "Break", grade: "", room: "", time: "11:20 AM", duration: 20 },
+                { period: 6, subject: "Mathematics", grade: "Grade 10", room: "205", time: "11:40 AM", duration: 45 },
+                { period: 7, subject: "Mathematics", grade: "Grade 11", room: "305", time: "12:30 PM", duration: 45 }
+            ],
+            wednesday: [
+                { period: 1, subject: "Mathematics", grade: "Grade 10", room: "205", time: "8:00 AM", duration: 45 },
+                { period: 2, subject: "Physics", grade: "Grade 11", room: "305", time: "8:50 AM", duration: 45 },
+                { period: 3, subject: "Mathematics", grade: "Grade 12", room: "101", time: "9:40 AM", duration: 45 },
+                { period: 4, subject: "Mathematics", grade: "Grade 9", room: "101", time: "10:30 AM", duration: 45 },
+                { period: 5, subject: "Break", grade: "", room: "", time: "11:20 AM", duration: 20 },
+                { period: 6, subject: "Physics", grade: "Grade 10", room: "205", time: "11:40 AM", duration: 45 },
+                { period: 7, subject: "Mathematics", grade: "Grade 11", room: "305", time: "12:30 PM", duration: 45 }
+            ],
+            thursday: [
+                { period: 1, subject: "Mathematics", grade: "Grade 12", room: "101", time: "8:00 AM", duration: 45 },
+                { period: 2, subject: "Mathematics", grade: "Grade 9", room: "101", time: "8:50 AM", duration: 45 },
+                { period: 3, subject: "Physics", grade: "Grade 10", room: "205", time: "9:40 AM", duration: 45 },
+                { period: 4, subject: "Mathematics", grade: "Grade 11", room: "305", time: "10:30 AM", duration: 45 },
+                { period: 5, subject: "Break", grade: "", room: "", time: "11:20 AM", duration: 20 },
+                { period: 6, subject: "Mathematics", grade: "Grade 10", room: "205", time: "11:40 AM", duration: 45 },
+                { period: 7, subject: "Physics", grade: "Grade 11", room: "305", time: "12:30 PM", duration: 45 }
+            ],
+            friday: [
+                { period: 1, subject: "Physics", grade: "Grade 10", room: "205", time: "8:00 AM", duration: 45 },
+                { period: 2, subject: "Mathematics", grade: "Grade 11", room: "305", time: "8:50 AM", duration: 45 },
+                { period: 3, subject: "Mathematics", grade: "Grade 12", room: "101", time: "9:40 AM", duration: 45 },
+                { period: 4, subject: "Mathematics", grade: "Grade 9", room: "101", time: "10:30 AM", duration: 45 },
+                { period: 5, subject: "Break", grade: "", room: "", time: "11:20 AM", duration: 20 },
+                { period: 6, subject: "Physics", grade: "Grade 11", room: "305", time: "11:40 AM", duration: 45 },
+                { period: 7, subject: "Mathematics", grade: "Grade 10", room: "205", time: "12:30 PM", duration: 45 }
+            ]
+        };
+
+        // Current day and time for demo purposes
+        // In a real app, this would use the actual current time
+        const currentTime = new Date();
+        currentTime.setHours(9, 35, 0); // Set to 9:35 AM for demo
+        
+        let currentDay = 'monday';
+        let notificationInterval;
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            renderSchedule(currentDay);
+            setupEventListeners();
+            startNotificationSystem();
+        });
+
+        // Render schedule for the selected day
+        function renderSchedule(day) {
+            const scheduleBody = document.getElementById('schedule-body');
+            scheduleBody.innerHTML = '';
+            
+            const schedule = scheduleData[day];
+            
+            schedule.forEach(classItem => {
+                const row = document.createElement('tr');
+                
+                // Determine class status (current, next, or past)
+                const classStatus = getClassStatus(classItem, day);
+                
+                row.innerHTML = `
+                    <td class="period">Period ${classItem.period}</td>
+                    <td>
+                        <div class="class-item ${classStatus}">
+                            <strong>${classItem.subject}</strong> - ${classItem.grade}
+                        </div>
+                    </td>
+                    <td>${classItem.room || '-'}</td>
+                    <td>${classItem.time}</td>
+                `;
+                
+                scheduleBody.appendChild(row);
+            });
+            
+            updateNextClassInfo(day);
+        }
+
+        // Determine if a class is current, next, or past
+        function getClassStatus(classItem, day) {
+            // For demo purposes, we're using a fixed current time
+            // In a real app, this would compare with the actual current time
+            
+            const classTime = parseTimeString(classItem.time);
+            
+            // If this is the current day in the real app, we would compare with actual time
+            // For demo, we're using our fixed currentTime
+            if (day === 'monday') { // Only check for Monday in our demo
+                if (classTime.getTime() <= currentTime.getTime() && 
+                    classTime.getTime() + (classItem.duration * 60 * 1000) > currentTime.getTime()) {
+                    return 'current';
+                }
+                
+                if (classTime.getTime() > currentTime.getTime()) {
+                    // Check if this is the next class
+                    const schedule = scheduleData[day];
+                    const currentClassIndex = schedule.findIndex(item => 
+                        parseTimeString(item.time).getTime() <= currentTime.getTime() && 
+                        parseTimeString(item.time).getTime() + (item.duration * 60 * 1000) > currentTime.getTime()
+                    );
+                    
+                    if (currentClassIndex !== -1 && classItem.period === schedule[currentClassIndex].period + 1) {
+                        return 'next';
+                    } else if (currentClassIndex === -1) {
+                        // If no current class, the first future class is next
+                        const futureClasses = schedule.filter(item => 
+                            parseTimeString(item.time).getTime() > currentTime.getTime()
+                        );
+                        if (futureClasses.length > 0 && classItem.period === futureClasses[0].period) {
+                            return 'next';
+                        }
+                    }
+                }
+                
+                if (classTime.getTime() + (classItem.duration * 60 * 1000) <= currentTime.getTime()) {
+                    return 'past';
+                }
+            }
+            
+            return '';
+        }
+
+        // Update the next class information in the sidebar
+        function updateNextClassInfo(day) {
+            const schedule = scheduleData[day];
+            
+            // Find the next class
+            let nextClass = null;
+            
+            if (day === 'monday') { // For demo, only check Monday
+                const futureClasses = schedule.filter(item => 
+                    parseTimeString(item.time).getTime() > currentTime.getTime() && 
+                    item.subject !== "Break"
+                );
+                
+                if (futureClasses.length > 0) {
+                    nextClass = futureClasses[0];
+                }
+            } else {
+                // For other days, just show the first class
+                nextClass = schedule.find(item => item.subject !== "Break") || schedule[0];
+            }
+            
+            if (nextClass) {
+                document.getElementById('next-class-time').textContent = nextClass.time;
+                document.getElementById('next-class-name').textContent = 
+                    `${nextClass.grade} - ${nextClass.subject}`;
+                document.getElementById('next-class-room').textContent = `Room ${nextClass.room}`;
+                document.getElementById('next-class-period').textContent = `Period ${nextClass.period}`;
+            }
+        }
+
+        // Parse time string to Date object
+        function parseTimeString(timeString) {
+            const [time, modifier] = timeString.split(' ');
+            let [hours, minutes] = time.split(':');
+            
+            hours = parseInt(hours);
+            minutes = parseInt(minutes);
+            
+            if (modifier === 'PM' && hours < 12) {
+                hours += 12;
+            }
+            if (modifier === 'AM' && hours === 12) {
+                hours = 0;
+            }
+            
+            const date = new Date();
+            date.setHours(hours, minutes, 0, 0);
+            return date;
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Day selector buttons
+            const dayButtons = document.querySelectorAll('.day-btn');
+            dayButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    dayButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    currentDay = this.getAttribute('data-day');
+                    renderSchedule(currentDay);
+                });
+            });
+            
+            // Notification close button
+            document.querySelector('.notification-close').addEventListener('click', function() {
+                document.getElementById('class-notification').classList.remove('show');
+            });
+            
+            // Notification bell
+            document.querySelector('.notification-bell').addEventListener('click', function() {
+                // In a real app, this would show a list of notifications
+                alert('You have 3 new notifications:\n- Schedule change for Period 3\n- Meeting at 2:00 PM\n- New resources available');
+            });
+        }
+
+        // Start the notification system
+        function startNotificationSystem() {
+            // Check for upcoming classes every minute
+            notificationInterval = setInterval(checkForUpcomingClasses, 60000);
+            
+            // Initial check
+            checkForUpcomingClasses();
+        }
+
+        // Check for upcoming classes and show notifications
+        function checkForUpcomingClasses() {
+            const schedule = scheduleData[currentDay];
+            const notifyBeforeClass = document.getElementById('notify-before-class').checked;
+            
+            if (!notifyBeforeClass) return;
+            
+            // For demo, we'll just show a notification for the next class on Monday
+            if (currentDay === 'monday') {
+                const nextClass = schedule.find(item => 
+                    parseTimeString(item.time).getTime() > currentTime.getTime() && 
+                    item.subject !== "Break"
+                );
+                
+                if (nextClass) {
+                    const timeUntilClass = parseTimeString(nextClass.time).getTime() - currentTime.getTime();
+                    const fiveMinutes = 5 * 60 * 1000;
+                    
+                    // If class starts in 5 minutes or less, show notification
+                    if (timeUntilClass <= fiveMinutes && timeUntilClass > 0) {
+                        showNotification(nextClass);
+                    }
+                }
+            }
+        }
+
+        // Show notification for upcoming class
+        function showNotification(classItem) {
+            const notification = document.getElementById('class-notification');
+            const notificationInfo = notification.querySelector('.notification-info');
+            
+            notificationInfo.innerHTML = `
+                <strong>Next Class Starting Soon</strong>
+                <p>${classItem.grade} ${classItem.subject} in Room ${classItem.room}</p>
+            `;
+            
+            notification.classList.add('show');
+            
+            // Auto-hide after 10 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 10000);
+            
+            // Play sound if enabled
+            if (document.getElementById('sound-notification').checked) {
+                // In a real app, you would play a notification sound
+                console.log('Notification sound played');
+            }
+        }
+    </script>
+</body>
+</html>
